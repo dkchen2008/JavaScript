@@ -48,4 +48,4 @@ jobs:
       - name: '运行 【步步宝】'
         #if: env.RLHEADER
         run: |
-          node Task/actions.js
+          node Task/bububao.js

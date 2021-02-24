@@ -15,7 +15,6 @@ boxjs链接  https://raw.githubusercontent.com/ziye66666/JavaScript/main/Task/zi
 2.21 制作
 2.23 完成
 2.23 修复ck问题
-2.24 调整通知布局，修复抽奖宝箱
 
 ⚠️ 时间设置    0,30 0-23 * * *    每天 35次以上就行   
 
@@ -59,7 +58,8 @@ http-response https:\/\/bububao\.duoshoutuan\.com\/user\/* script-path=https://r
 const $ = Env("步步宝");
 $.idx = ($.idx = ($.getval('bububaoSuffix') || '1') - 1) > 0 ? ($.idx + 1 + '') : ''; // 账号扩展字符
 const notify = $.isNode() ? require("./sendNotify") : ``;
-const COOKIE = $.isNode() ? require("./bububaoCOOKIE") : ``;
+//const COOKIE = $.isNode() ? require("./bububaoCOOKIE") : ``;
+const COOKIE =  ``;
 const logs = 0; // 0为关闭日志，1为开启
 const notifyttt = 1 // 0为关闭外部推送，1为12 23 点外部推送
 const notifyInterval = 2; // 0为关闭通知，1为所有通知，2为12 23 点通知  ， 3为 6 12 18 23 点通知 
@@ -288,9 +288,9 @@ async function all() {
         if (!cookie_is_live) {
             continue;
         }
-        await help_index() //助力活动
         await home() //首页信息
         await jindan_click() //首页金蛋
+        await help_index() //助力活动
         await sign_html() //签到
         await dk_info() //打卡
         await cy_info() //答题
@@ -660,12 +660,12 @@ function help_index(timeout = 0) {
                     if (logs) $.log(`${O}, 助力活动🚩: ${data}`);
                     $.help_index = JSON.parse(data);
                     if ($.help_index.code == 1) {
-                        console.log(`助力活动：现金${$.help_index.jinbi}元,差${$.help_index.diff_jinbi}元,时间剩余${($.help_index.time/3600).toFixed(0)}小时\n`);
-                        $.message += `【助力活动】：现金${$.help_index.jinbi}元,差${$.help_index.diff_jinbi}元,时间剩余${($.help_index.time/3600).toFixed(0)}小时\n`;
+                        console.log(`助力活动：现金${$.help_index.jinbi}元,还差${$.help_index.diff_jinbi}元,时间剩余${($.help_index.time/3600).toFixed(2)}小时\n`);
+                        $.message += `【助力活动】：现金${$.help_index.jinbi}元,还差${$.help_index.diff_jinbi}元,时间剩余${($.help_index.time/3600).toFixed(2)}小时\n`;
                         nonce_str = $.help_index.nonce_str
-                        //if ($.help_index.diff_jinbi > 0) {
-                            //await help_click()
-                        //}
+                        if ($.help_index.diff_jinbi > 0) {
+                            await help_click()
+                        }
                     }
                 } catch (e) {
                     $.logErr(e, resp);
@@ -779,8 +779,8 @@ function dk_info(timeout = 0) {
                     $.dk_info = JSON.parse(data);
                     if ($.dk_info.code == 1) {
                         now_time = $.dk_info.now_time
-                        console.log(`早晚打卡页：${$.dk_info.day},${$.dk_info.title1}\n`);
-                        $.message += `【早晚打卡页】：${$.dk_info.day},${$.dk_info.title1}\n`;
+                        console.log(`早晚打卡页：${$.dk_info.day},${$.dk_info.title2}\n`);
+                        $.message += `【早晚打卡页】：${$.dk_info.day},${$.dk_info.title2}\n`;
                         if ($.dk_info.is_dk == 0) {
                             await dk_click() //早晚打卡
                         }
@@ -1195,8 +1195,8 @@ function lucky(timeout = 0) {
                             await lucky_click() //转盘抽奖
                         }
                     }
-                    if ($.lucky && $.lucky.lucky_box.indexOf('1') >= 0) {
-                        box = $.lucky.lucky_box.indexOf('1') + 1
+                    if ($.lucky && $.lucky.lucky_box.indexOf(1) >= 0) {
+                        box = $.lucky.lucky_box.indexOf(1) + 1
                         await lucky_box() //抽奖宝箱
                     }
                 } catch (e) {

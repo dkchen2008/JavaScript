@@ -1,4 +1,4 @@
-name: yuedongzu@ziye3
+name: 悦动族
 on:
   workflow_dispatch:
   watch:

@@ -10,10 +10,12 @@ boxjs链接  https://raw.githubusercontent.com/ziye66666/JavaScript/main/Task/zi
 2.23 完成
 2.23 修复ck问题
 2.24 调整通知布局，修复抽奖宝箱
+3.1 修复看看赚
+3.2 调整抽奖机制， 一次运行5次抽奖， 抽中1000金币则兑奖
 ⚠️ 时间设置    0,30 0-23 * * *    每天 35次以上就行   
-一 看看赚做不了   
-二 视频助力手动也是不行的 
-三 默认0点睡23点醒，时间务必包括这两个点 
+ 
+一 视频助力手动也是不行的 
+二 默认0点睡23点醒，时间务必包括这两个点 
 (已内置随机udid，添加重写无视多设备检测，如非必要，勿频繁登录)
 ⚠️一共1个位置 1个ck  👉 2条 Secrets 
 多账号换行
@@ -275,14 +277,15 @@ async function all() {
         await cy_info() //答题
         await water_info() //喝水
         await sleep_info() //睡觉
-        await gualist() //刮刮卡
+        await ggk() //刮刮卡
+        await $.wait(8000)
         await lucky() //转盘抽奖
         await $.wait(1000)
         await lucky() //转盘抽奖
         await $.wait(1000)
         await lucky() //转盘抽奖
         await $.wait(1000)
-        //await h5_list() //看看赚
+        await h5_list() //看看赚
         await news() //看文章
         await renwu() //赚赚任务
         await tixian_html() //提现
@@ -643,7 +646,7 @@ function help_index(timeout = 0) {
                         $.message += `【助力活动】：现金${$.help_index.jinbi}元,差${$.help_index.diff_jinbi}元,时间剩余${($.help_index.time/3600).toFixed(0)}小时\n`;
                         nonce_str = $.help_index.nonce_str
                         //if ($.help_index.diff_jinbi > 0) {
-                            //await help_click()
+                        //await help_click()
                         //}
                     }
                 } catch (e) {
@@ -1064,6 +1067,16 @@ function sleep_done(timeout = 0) {
         }, timeout)
     })
 }
+
+//刮刮卡
+async function ggk() {
+    for (let i = 0; i < 5; i++) {
+        setTimeout(async () => {
+            await gualist()
+        }, i * 2000);
+    }
+}
+
 //刮刮卡列表
 function gualist(timeout = 0) {
     return new Promise((resolve) => {
@@ -1110,11 +1123,31 @@ function guadet(timeout = 0) {
                     if (logs) $.log(`${O}, 刮刮卡🚩: ${data}`);
                     $.guadet = JSON.parse(data);
                     if ($.guadet.jine) {
-                        console.log(`刮刮卡：开启${$.guadet.jine}元\n`);
-                        $.message += `【刮刮卡】：开启${$.guadet.jine}元\n`;
-                        sign = $.guadet.sign
-                        glid = $.guadet.glid
-                        await guapost() //刮卡奖励
+                        guacs = data.match(/x(\d+).png/g).length + 1
+
+                        if (!guacs) {
+                            console.log(`【刮刮卡查询】：开启${$.guadet.jine}元,抽中1等奖\n`)
+                            $.message += `【刮刮卡查询】：开启${$.guadet.jine}元,抽中1等奖\n`;
+                            console.log(`【刮刮卡领取】：成功领奖\n`)
+                            $.message += `【刮刮卡领取】：成功领奖\n`;
+                            sign = $.guadet.sign
+                            glid = $.guadet.glid
+                            await guapost() //刮卡奖励
+                        }
+                        if (guacs) {
+                            console.log(`【刮刮卡查询】：开启${$.guadet.jine}元,抽中${guacs}等奖\n`)
+                            $.message += `【刮刮卡查询】：开启${$.guadet.jine}元,抽中${guacs}等奖\n`;
+                            if (guacs <= 2) {
+                                console.log(`【刮刮卡领取】：成功领奖\n`)
+                                $.message += `【刮刮卡领取】：成功领奖\n`;
+                                sign = $.guadet.sign
+                                glid = $.guadet.glid
+                                await guapost() //刮卡奖励
+                            } else {
+                                console.log(`【刮刮卡领取】：再来一次\n`)
+                                $.message += `【刮刮卡领取】：再来一次\n`;
+                            }
+                        }
                     }
                 } catch (e) {
                     $.logErr(e, resp);
@@ -1264,7 +1297,7 @@ function h5_list(timeout = 0) {
                         id = is_ok.id
                         console.log(`看看赚列表：下个任务：${is_ok.mini_name}\n`);
                         $.message += `【看看赚列表】：下个任务：${is_ok.mini_name}\n`;
-                        await $.wait(30000)
+
                         await h5_news() //看看赚执行
                     }
                 } catch (e) {
@@ -1294,8 +1327,8 @@ function h5_news(timeout = 0) {
                         $.message += `【看看赚执行】：下个任务：${$.h5_news.mini_str}\n`;
                         taskid = $.h5_news.taskid
                         nonce_str = $.h5_news.nonce_str
-                        await $.wait(30000)
-                        await h5_newsdone() //看看赚完成
+                        await $.wait(15000)
+                        await h5_h5() //看看上传
                     }
                 } catch (e) {
                     $.logErr(e, resp);
@@ -1306,6 +1339,39 @@ function h5_news(timeout = 0) {
         }, timeout)
     })
 }
+
+//看看赚上传
+function h5_h5(timeout = 0) {
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            let url = {
+                url: `https://hunter-report.dui88.com/tuiaExtLog?group=1&type=9&json=%7B%22subtype%22%3A%22head%22%2C%22tck_rid_6c8%22%3A%220a56e7aaklm541ew-6681973%22%2C%22slotId%22%3A%22353024%22%2C%22activityId%22%3A%2216765%22%2C%22consumerId%22%3A%2226444115908%22%2C%22timestamp%22%3A${tts()}%7D`,
+                headers: {
+                    "Host": "hunter-report.dui88.com"
+                },
+
+            }
+            $.get(url, async (err, resp, data) => {
+                try {
+                    if (logs) $.log(`${O}, 看看赚上传🚩: ${data}`);
+                    $.h5_h5 = JSON.parse(data);
+                    console.log(`看看赚：${$.h5_h5.msg}\n`);
+                    $.message += `【看看赚】：${$.h5_h5.msg}\n`;
+
+                    await $.wait(30000)
+                    await h5_newsdone() //看看赚完成
+
+                } catch (e) {
+                    $.logErr(e, resp);
+                } finally {
+                    resolve()
+                }
+            })
+        }, timeout)
+    })
+}
+
+
 //看看赚完成
 function h5_newsdone(timeout = 0) {
     return new Promise((resolve) => {
@@ -1319,9 +1385,9 @@ function h5_newsdone(timeout = 0) {
                 try {
                     if (logs) $.log(`${O}, 看看赚完成🚩: ${data}`);
                     $.h5_newsdone = JSON.parse(data);
-                    if ($.h5_newsdone.taskid) {
-                        console.log(`看看赚完成：${$.h5_newsdone.msg}\n`);
-                        $.message += `【看看赚完成】：${$.h5_newsdone.msg}\n`;
+                    if ($.h5_newsdone.msg) {
+                        console.log(`看看赚完成：${$.h5_newsdone.msg}${$.h5_newsdone.jinbi}金币\n`);
+                        $.message += `【看看赚完成】：${$.h5_newsdone.msg}${$.h5_newsdone.jinbi}金币\n`;
                         tid = 10
                         pos = 1
                         nonce_str = $.h5_newsdone.fb_str

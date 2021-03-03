@@ -10,19 +10,19 @@ jobs:
       
       - name: Checkout
         run: |
-          git clone https://github.com/dkchen2008/ZY.git ~/ZY
+          git clone https://github.com/pizile/ZY.git ~/ZY
       - name: Use Node.js 14.x
         uses: actions/setup-node@v1
         with:
           node-version: 14.x
       - name: npm install
         run: |
-          cd ~/JavaScript
+          cd ~/ZY
           npm install
           npm install cron
           npm install request
           curl ipinfo.io/json
       - name: '【步步宝】'
         run: |
-          cd ~/JavaScript
+          cd ~/ZY
           node Task/bububao.js
